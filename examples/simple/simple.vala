@@ -11,9 +11,13 @@ void main(string[] argv) {
         (_, client) => {
             client.changed.connect(
                 (_) => {
-                    print(@"[ID] $(client.id.to_string()) [APP ID] $(client.app_id) [TITLE] $(client.title)");
+                    print(
+                        @"[ID] $(client.id.to_string()) [APP ID] $(client.app_id) [TITLE] $(client.title)"
+                    );
                 }
             );
         }
     );
+
+    Gtk.main();
 }

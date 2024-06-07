@@ -11,7 +11,11 @@ def on_client_added(_, client):
         )
     )
 
-manager = Glace.Manager()
-manager.connect("client-added", on_client_added)
+def main():
+    manager = Glace.Manager()
+    manager.connect("client-added", on_client_added)
 
-Gtk.main()
+    Gtk.main()
+
+if __name__ == "__main__":
+    main()

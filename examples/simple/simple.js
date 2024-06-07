@@ -15,13 +15,15 @@ function main() {
             client.connect(
                 "changed",
                 (_) => {
-                    print(`[ID] {${client.get_id()}} [APP ID] {${client.get_app_id()}} [TITLE] {${client.get_title()}}`);
+                    print(
+                        `[ID] ${client.get_id()} [APP ID] ${client.get_app_id()} [TITLE] ${client.get_title()}`
+                    );
                 }
             );
         }
     );
+
+    Gtk.main();
 }
 
 main()
-
-Gtk.main();

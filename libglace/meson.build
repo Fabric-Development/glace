@@ -10,14 +10,32 @@ glace_library_name = 'lib' + meson.project_name()
 glace_namespace = 'Glace'
 glace_package_name = glace_namespace + '-' + glace_version
 
-
-glace_sources = files(
+glace_public_src = files(
+    'libglace-manager.c',
+    'libglace-client.c',
     'libglace.c',
 )
-glace_headers = files(
+
+glace_private_src = files(
+    'libglace-manager-private.c',
+    'libglace-client-private.c',
+)
+
+glace_sources = glace_public_src + glace_private_src
+
+glace_public_headers = files(
+    'libglace-manager.h',
+    'libglace-client.h',
     'libglace.h',
 )
 
+glace_private_headers = files(
+    'libglace-manager-private.h',
+    'libglace-client-private.h',
+    'libglace-private.h',
+)
+
+glace_headers = glace_public_headers + glace_private_headers
 
 dependencies = [
     dependency('glib-2.0'),
@@ -40,14 +58,15 @@ libglace = library(
 
 glace_gir = gnome.generate_gir(
   libglace,
-  sources: glace_sources + glace_headers,
+  header: 'libglace.h',
+  sources: glace_public_src + glace_public_headers,
   namespace: glace_namespace,
   nsversion: glace_version,
-  symbol_prefix: 'glace',
   identifier_prefix: glace_namespace,
   includes: ['GObject-2.0', 'Gtk-3.0'],
   dependencies: dependencies,
-  header: 'libglace.h',
+  header: 'libglace/libglace.h',
+  symbol_prefix: 'glace',
   install: true,
 )
 
