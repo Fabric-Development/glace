@@ -119,6 +119,10 @@ static void on_toplevel_handle_done(
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle
 ) {
     GlaceClient* self = data;
+    IF_INVALID_CLIENT(self) {
+        // already finalized client
+        return;
+    }
 
     if (CLIENT_GET_CURRENT_PROP(self, title) && CLIENT_GET_PENDING_PROP(self, title)) {
         free(CLIENT_GET_CURRENT_PROP(self, title));
