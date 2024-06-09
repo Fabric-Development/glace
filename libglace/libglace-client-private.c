@@ -104,12 +104,16 @@ static void on_toplevel_handle_state(
 ) {
     GlaceClient* self = data;
 
-    uint32_t* state;
+    CLIENT_SET_DEFAULT_STATES(self);
+
+    enum zwlr_foreign_toplevel_handle_v1_state* state;
     wl_array_for_each(state, states) {
-        CLIENT_COMMIT_STATE_PROP(self, state, MAXIMIZED, maximized);
-        CLIENT_COMMIT_STATE_PROP(self, state, MINIMIZED, minimized);
-        CLIENT_COMMIT_STATE_PROP(self, state, ACTIVATED, activated);
-        CLIENT_COMMIT_STATE_PROP(self, state, FULLSCREEN, fullscreen);
+		switch (*state) {
+            CLIENT_SET_STATE_FOR_CASE(self, state, MAXIMIZED, maximized);
+            CLIENT_SET_STATE_FOR_CASE(self, state, MINIMIZED, minimized);
+            CLIENT_SET_STATE_FOR_CASE(self, state, ACTIVATED, activated);
+            CLIENT_SET_STATE_FOR_CASE(self, state, FULLSCREEN, fullscreen);
+        }
     }
 }
 

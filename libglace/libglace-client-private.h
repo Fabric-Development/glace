@@ -26,13 +26,16 @@
     } \
 } while (0)
 
-#define CLIENT_COMMIT_STATE_PROP(client, state, enum_m, prop) do { \
-    if (*state == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_##enum_m) { \
+#define CLIENT_SET_STATE_FOR_CASE(client, state, ENUM_M, prop) \
+    case ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_##ENUM_M: \
         CLIENT_SET_PENDING_PROP(client, prop, true); \
-    } else { \
-        CLIENT_SET_PENDING_PROP(client, prop, false); \
-    } \
-} while (0)
+        break; \
+
+#define CLIENT_SET_DEFAULT_STATES(client) \
+    CLIENT_SET_PENDING_PROP(client, maximized, false); \
+    CLIENT_SET_PENDING_PROP(client, minimized, false); \
+    CLIENT_SET_PENDING_PROP(client, activated, false); \
+    CLIENT_SET_PENDING_PROP(client, fullscreen, false); \
 
 #define IF_INVALID_CLIENT(client) if (client == NULL || GLACE_IS_CLIENT(client) == false || client->priv->closed == true)
 
