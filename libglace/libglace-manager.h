@@ -1,12 +1,12 @@
 #ifndef __LIBGLACE_MANAGER_H__
 #define __LIBGLACE_MANAGER_H__
 
-#include <gtk-3.0/gtk/gtk.h>
+#include <assert.h>
 #include <gdk/gdkwayland.h>
 #include <glib-object.h>
+#include <gtk-3.0/gtk/gtk.h>
 #include <stdbool.h>
 #include <string.h>
-#include <assert.h>
 
 G_BEGIN_DECLS
 

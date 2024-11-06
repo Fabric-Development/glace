@@ -1,7 +1,9 @@
 #include "libglace-private.h"
 
 static guint glace_client_signals[GLACE_CLIENT_N_SIGNALS] = {0};
-static GParamSpec* glace_client_properties[GLACE_CLIENT_N_PROPERTIES] = {NULL,};
+static GParamSpec* glace_client_properties[GLACE_CLIENT_N_PROPERTIES] = {
+    NULL,
+};
 
 static void glace_client_signal_changed_emit(GlaceClient* self) {
     g_signal_emit(
@@ -19,7 +21,6 @@ static void glace_client_signal_close_emit(GlaceClient* self) {
     );
 }
 
-
 static void glace_client_get_property(
     GObject* object,
     guint prop_id,
@@ -29,36 +30,35 @@ static void glace_client_get_property(
     GlaceClient* self = GLACE_CLIENT(object);
 
     switch (prop_id) {
-        case GLACE_CLIENT_PROPERTY_ID:
-            g_value_set_uint(value, (guint)self->priv->id);
-            break;
-        case GLACE_CLIENT_PROPERTY_APP_ID:
-            g_value_set_string(value, CLIENT_GET_CURRENT_PROP(self, app_id));
-            break;
-        case GLACE_CLIENT_PROPERTY_TITLE:
-            g_value_set_string(value, CLIENT_GET_CURRENT_PROP(self, title));
-            break;
-        case GLACE_CLIENT_PROPERTY_MAXIMIZED:
-            g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, maximized));
-            break;
-        case GLACE_CLIENT_PROPERTY_MINIMIZED:
-            g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, minimized));
-            break;
-        case GLACE_CLIENT_PROPERTY_ACTIVATED:
-            g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, activated));
-            break;
-        case GLACE_CLIENT_PROPERTY_FULLSCREEN:
-            g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, fullscreen));
-            break;
-        case GLACE_CLIENT_PROPERTY_CLOSED:
-            g_value_set_boolean(value, self->priv->closed);
-            break;
-        default:
-            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-            break;
+    case GLACE_CLIENT_PROPERTY_ID:
+        g_value_set_uint(value, (guint)self->priv->id);
+        break;
+    case GLACE_CLIENT_PROPERTY_APP_ID:
+        g_value_set_string(value, CLIENT_GET_CURRENT_PROP(self, app_id));
+        break;
+    case GLACE_CLIENT_PROPERTY_TITLE:
+        g_value_set_string(value, CLIENT_GET_CURRENT_PROP(self, title));
+        break;
+    case GLACE_CLIENT_PROPERTY_MAXIMIZED:
+        g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, maximized));
+        break;
+    case GLACE_CLIENT_PROPERTY_MINIMIZED:
+        g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, minimized));
+        break;
+    case GLACE_CLIENT_PROPERTY_ACTIVATED:
+        g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, activated));
+        break;
+    case GLACE_CLIENT_PROPERTY_FULLSCREEN:
+        g_value_set_boolean(value, CLIENT_GET_CURRENT_PROP(self, fullscreen));
+        break;
+    case GLACE_CLIENT_PROPERTY_CLOSED:
+        g_value_set_boolean(value, self->priv->closed);
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        break;
     }
 }
-
 
 // client event handlers
 static void on_toplevel_handle_title(
@@ -70,7 +70,6 @@ static void on_toplevel_handle_title(
 
     CLIENT_SET_PENDING_PROP(self, title, (gchar*)(strdup(title)));
 }
-
 
 static void on_toplevel_handle_app_id(
     void* data,
@@ -89,13 +88,11 @@ static void on_toplevel_handle_output_enter(
     struct wl_output* output
 ) {}
 
-
 static void on_toplevel_handle_output_leave(
     void* data,
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle,
     struct wl_output* output
 ) {}
-
 
 static void on_toplevel_handle_state(
     void* data,
@@ -108,7 +105,7 @@ static void on_toplevel_handle_state(
 
     enum zwlr_foreign_toplevel_handle_v1_state* state;
     wl_array_for_each(state, states) {
-		switch (*state) {
+        switch (*state) {
             CLIENT_SET_STATE_FOR_CASE(self, state, MAXIMIZED, maximized);
             CLIENT_SET_STATE_FOR_CASE(self, state, MINIMIZED, minimized);
             CLIENT_SET_STATE_FOR_CASE(self, state, ACTIVATED, activated);
@@ -116,7 +113,6 @@ static void on_toplevel_handle_state(
         }
     }
 }
-
 
 static void on_toplevel_handle_done(
     void* data,
@@ -135,7 +131,6 @@ static void on_toplevel_handle_done(
     if (CLIENT_GET_CURRENT_PROP(self, app_id) && CLIENT_GET_PENDING_PROP(self, app_id)) {
         free(CLIENT_GET_CURRENT_PROP(self, app_id));
     }
-
 
     if (CLIENT_GET_PENDING_PROP(self, title)) {
         CLIENT_BRIDGE_PROPS(self, title, TITLE);
@@ -156,7 +151,6 @@ static void on_toplevel_handle_done(
     glace_client_signal_changed_emit(self);
 }
 
-
 static void on_toplevel_handle_closed(
     void* data,
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle
@@ -168,13 +162,11 @@ static void on_toplevel_handle_closed(
     glace_client_signal_close_emit(self);
 }
 
-
 static void on_toplevel_handle_parent(
     void* data,
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle,
     struct zwlr_foreign_toplevel_handle_v1* parent
 ) {}
-
 
 static struct zwlr_foreign_toplevel_handle_v1_listener toplevel_handle_listener = {
     .title = &on_toplevel_handle_title,
@@ -186,7 +178,6 @@ static struct zwlr_foreign_toplevel_handle_v1_listener toplevel_handle_listener 
     .closed = &on_toplevel_handle_closed,
     .parent = &on_toplevel_handle_parent
 };
-
 
 static void glace_client_class_init(GlaceClientClass* klass) {
     GObjectClass* parent_class = G_OBJECT_CLASS(klass);
@@ -231,9 +222,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         0
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_ID
-    ] = g_param_spec_uint(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_ID] = g_param_spec_uint(
         "id",
         "id",
         "the id of the client",
@@ -243,9 +232,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_APP_ID
-    ] = g_param_spec_string(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_APP_ID] = g_param_spec_string(
         "app-id",
         "class",
         "the application id of the client (class name under X11)",
@@ -253,9 +240,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_TITLE
-    ] = g_param_spec_string(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_TITLE] = g_param_spec_string(
         "title",
         "title",
         "the current title of the client",
@@ -264,9 +249,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
     );
 
     // state properties
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_MAXIMIZED
-    ] = g_param_spec_boolean(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_MAXIMIZED] = g_param_spec_boolean(
         "maximized",
         "maximized",
         "whether this client is currently maximized or not",
@@ -274,9 +257,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_MINIMIZED
-    ] = g_param_spec_boolean(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_MINIMIZED] = g_param_spec_boolean(
         "minimized",
         "minimized",
         "whether this client is currently minimized or not",
@@ -284,9 +265,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_ACTIVATED
-    ] = g_param_spec_boolean(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_ACTIVATED] = g_param_spec_boolean(
         "activated",
         "focused",
         "whether this client is currently activated (focused) or not",
@@ -294,17 +273,11 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_FULLSCREEN
-    ] = g_param_spec_boolean(
-        "fullscreen", "fullscreen", "whether this client is currently in a fullscreen state or not",
-        false,
-        G_PARAM_READABLE
+    glace_client_properties[GLACE_CLIENT_PROPERTY_FULLSCREEN] = g_param_spec_boolean(
+        "fullscreen", "fullscreen", "whether this client is currently in a fullscreen state or not", false, G_PARAM_READABLE
     );
 
-    glace_client_properties[
-        GLACE_CLIENT_PROPERTY_CLOSED
-    ] = g_param_spec_boolean(
+    glace_client_properties[GLACE_CLIENT_PROPERTY_CLOSED] = g_param_spec_boolean(
         "closed",
         "closed",
         "whether this client is closed (killed) or not, it's guaranteed that you won't receive events for this client after it gets closed",
@@ -318,7 +291,6 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         glace_client_properties
     );
 }
-
 
 static void glace_client_init(GlaceClient* self) {
     self->priv = G_TYPE_INSTANCE_GET_PRIVATE(
@@ -336,7 +308,6 @@ static void glace_client_init(GlaceClient* self) {
     CLIENT_SET_CURRENT_PROP(self, fullscreen, false);
 }
 
-
 GlaceClient* glace_client_new(
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle,
     GdkWaylandDisplay* gdk_display
@@ -352,6 +323,5 @@ GlaceClient* glace_client_new(
     );
     return self;
 }
-
 
 G_DEFINE_TYPE(GlaceClient, glace_client, G_TYPE_OBJECT);

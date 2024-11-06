@@ -2,7 +2,6 @@
 
 static guint glace_manager_signals[GLACE_MANAGER_N_SIGNALS] = {0};
 
-
 static void glace_manager_signal_changed_emit(GlaceManager* self) {
     g_signal_emit(
         self,
@@ -10,7 +9,6 @@ static void glace_manager_signal_changed_emit(GlaceManager* self) {
         0
     );
 }
-
 
 static void glace_manager_signal_client_added_emit(GlaceManager* self, GlaceClient* client) {
     g_signal_emit(
@@ -21,7 +19,6 @@ static void glace_manager_signal_client_added_emit(GlaceManager* self, GlaceClie
     );
 }
 
-
 static void glace_manager_signal_client_removed_emit(GlaceManager* self, GlaceClient* client) {
     g_signal_emit(
         self,
@@ -31,14 +28,12 @@ static void glace_manager_signal_client_removed_emit(GlaceManager* self, GlaceCl
     );
 }
 
-
 static void on_client_closed_cleanup(GlaceClient* self, gpointer data) {
     GlaceManager* manager = (GlaceManager*)data;
 
     glace_manager_signal_client_removed_emit(manager, self);
     glace_manager_signal_changed_emit(manager);
 }
-
 
 static void on_manager_toplevel(
     void* data,
@@ -61,18 +56,15 @@ static void on_manager_toplevel(
     g_debug("[INFO][MANAGER] got a client with id %u\n", glace_client_get_id(client));
 };
 
-
 static void on_manager_finished(
     void* data,
     struct zwlr_foreign_toplevel_manager_v1* manager
 ) {}
 
-
 static const struct zwlr_foreign_toplevel_manager_v1_listener toplevel_manager_listener = {
     .toplevel = &on_manager_toplevel,
     .finished = &on_manager_finished
 };
-
 
 static void on_registry_global(
     void* data,
@@ -103,15 +95,12 @@ static void on_registry_global(
     }
 };
 
-
-static void on_registry_global_remove(void* data, struct wl_registry *registry, uint32_t name) {}
-
+static void on_registry_global_remove(void* data, struct wl_registry* registry, uint32_t name) {}
 
 static const struct wl_registry_listener registry_listener = {
     .global = &on_registry_global,
     .global_remove = &on_registry_global_remove,
 };
-
 
 static void glace_manager_class_init(GlaceManagerClass* klass) {
     GObjectClass* parent_class = G_OBJECT_CLASS(klass);
@@ -157,7 +146,6 @@ static void glace_manager_class_init(GlaceManagerClass* klass) {
     );
 }
 
-
 static void glace_manager_init(GlaceManager* self) {
     self->priv = G_TYPE_INSTANCE_GET_PRIVATE(
         self,
@@ -189,10 +177,10 @@ static void glace_manager_init(GlaceManager* self) {
 
     wl_display_roundtrip(self->priv->display);
 
-    if (self->priv->wlr_manager == NULL) g_warning(
-        "[WARNING][MANAGER] your compositor does not support the wlr-foreign-toplevel-management protocol, Glace will not work if the protocol support is missing!"
-    );
+    if (self->priv->wlr_manager == NULL)
+        g_warning(
+            "[WARNING][MANAGER] your compositor does not support the wlr-foreign-toplevel-management protocol, Glace will not work if the protocol support is missing!"
+        );
 }
-
 
 G_DEFINE_TYPE(GlaceManager, glace_manager, G_TYPE_OBJECT);

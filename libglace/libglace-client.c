@@ -33,7 +33,6 @@ gboolean glace_client_get_closed(GlaceClient* self) {
     return self->priv->closed;
 }
 
-
 // client methods
 void glace_client_maximize(GlaceClient* self) {
     // replacing EMPTY_TOKEN with a trailing comma
@@ -43,13 +42,11 @@ void glace_client_maximize(GlaceClient* self) {
     zwlr_foreign_toplevel_handle_v1_set_maximized(self->priv->wlr_handle);
 }
 
-
 void glace_client_unmaximize(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
 
     zwlr_foreign_toplevel_handle_v1_unset_maximized(self->priv->wlr_handle);
 }
-
 
 void glace_client_minimize(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
@@ -57,20 +54,17 @@ void glace_client_minimize(GlaceClient* self) {
     zwlr_foreign_toplevel_handle_v1_set_minimized(self->priv->wlr_handle);
 }
 
-
 void glace_client_unminimize(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
 
     zwlr_foreign_toplevel_handle_v1_unset_minimized(self->priv->wlr_handle);
 }
 
-
 void glace_client_close(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
 
     zwlr_foreign_toplevel_handle_v1_close(self->priv->wlr_handle);
 }
-
 
 void glace_client_activate(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
@@ -83,7 +77,6 @@ void glace_client_activate(GlaceClient* self) {
         seat
     );
 }
-
 
 void glace_client_move(
     GlaceClient* self,
@@ -114,13 +107,11 @@ void glace_client_move(
     );
 }
 
-
 void glace_client_fullscreen(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
 
     zwlr_foreign_toplevel_handle_v1_set_fullscreen(self->priv->wlr_handle, self->priv->output);
 }
-
 
 void glace_client_unfullscreen(GlaceClient* self) {
     RETURN_IF_INVALID_CLIENT(self, EMPTY_TOKEN);
