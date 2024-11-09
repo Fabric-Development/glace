@@ -1,38 +1,31 @@
 gnome = import('gnome')
 pkg_config = import('pkgconfig')
 
+glace_name = meson.project_name()
 glace_version = meson.project_version()
 glace_description = 'a library for managing wayland clients'
 glace_url = 'https://github.com/Fabric-Development/glace'
 
-glace_library_name = 'lib' + meson.project_name()
+glace_library_name = 'lib' + glace_name
 
 glace_namespace = 'Glace'
 glace_package_name = glace_namespace + '-' + glace_version
 
-glace_public_src = files(
-    'libglace-manager.c',
-    'libglace-client.c',
-    'libglace.c',
+glace_sources = files(
+    'glace-manager.c',
+    'glace-client.c'
 )
-
-glace_private_src = files(
-    'libglace-manager-private.c',
-    'libglace-client-private.c',
-)
-
-glace_sources = glace_public_src + glace_private_src
 
 glace_public_headers = files(
-    'libglace-manager.h',
-    'libglace-client.h',
-    'libglace.h',
+    'glace-manager.h',
+    'glace-client.h',
+    'glace.h'
 )
 
 glace_private_headers = files(
-    'libglace-manager-private.h',
-    'libglace-client-private.h',
-    'libglace-private.h',
+    'glace-manager-private.h',
+    'glace-client-private.h',
+    'glace-private.h'
 )
 
 glace_headers = glace_public_headers + glace_private_headers
@@ -59,7 +52,7 @@ libglace = library(
 glace_gir = gnome.generate_gir(
   libglace,
   header: 'libglace.h',
-  sources: glace_public_src + glace_public_headers,
+  sources: glace_sources + glace_public_headers,
   namespace: glace_namespace,
   nsversion: glace_version,
   identifier_prefix: glace_namespace,
@@ -80,12 +73,12 @@ libgpaste_vapi = gnome.generate_vapi(
 
 install_headers(
     glace_headers ,
-    subdir: glace_library_name,   
+    subdir: glace_name,   
 )
 
 pkg_config.generate(
-    name: meson.project_name(),
-    filebase: glace_library_name,
+    name: glace_name,
+    filebase: glace_name,
     version: meson.project_version(),
     libraries: libglace,
     requires: dependencies,

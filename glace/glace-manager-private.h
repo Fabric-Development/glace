@@ -1,9 +1,11 @@
+#pragma once
+
 #ifndef __LIBGLACE_MANAGER_PRIVATE_H__
 #define __LIBGLACE_MANAGER_PRIVATE_H__
 
-#include "libglace-client-private.h"
-#include "libglace-manager.h"
-#include "wlr-foreign-toplevel-management-unstable-v1.h"
+#include "glace-client-private.h"
+#include "glace-client.h"
+#include "glace-manager.h"
 
 #define max(a, b) (a > b ? a : b)
 #define min(x, y) ((x) < (y) ? (x) : (y))
@@ -20,6 +22,32 @@
     } while (0)
 
 #define G_LIST_FOREACH(item, list) for (GList* __glist = list; __glist && (item = __glist->data, true); __glist = __glist->next)
+
+typedef struct _GlaceFrameData GlaceFrameData;
+typedef struct _GlaceFrameBuffer GlaceFrameBuffer;
+
+struct _GlaceFrameBuffer {
+    struct wl_buffer* wl_buffer;
+    void* raw_buffer;
+
+    size_t size;
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t format;
+};
+
+struct _GlaceFrameData {
+    GlaceManager* manager;
+    GlaceClient* client;
+
+    GlaceFrameBuffer* buffer;
+
+    GlaceManagerCaptureClientCallback callback;
+    gpointer callback_data;
+};
+
+const static struct hyprland_toplevel_export_frame_v1_listener export_manager_frame_listener;
 
 // static void glace_manager_init(GlaceManager* self);
 // static void glace_manager_class_init(GlaceManagerClass* klass);

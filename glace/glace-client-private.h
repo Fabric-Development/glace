@@ -1,8 +1,10 @@
+#pragma once
+
 #ifndef __LIBGLACE_CLIENT_PRIVATE_H__
 #define __LIBGLACE_CLIENT_PRIVATE_H__
 
-#include "libglace-client.h"
-#include "libglace-manager-private.h"
+#include "glace-client.h"
+#include "glace-manager-private.h"
 
 #define CLIENT_SET_CURRENT_PROP(client, prop, value) \
     (client->priv->current_properties.prop = value)

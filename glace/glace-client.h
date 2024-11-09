@@ -1,7 +1,14 @@
+#pragma once
+
 #ifndef __LIBGLACE_CLIENT_H__
 #define __LIBGLACE_CLIENT_H__
 
-#include "libglace-manager.h"
+#include <assert.h>
+#include <gdk/gdkwayland.h>
+#include <glib-object.h>
+#include <gtk-3.0/gtk/gtk.h>
+#include <stdbool.h>
+#include <string.h>
 
 G_BEGIN_DECLS
 
