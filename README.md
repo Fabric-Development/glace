@@ -24,7 +24,7 @@ Additionally, you will need a Wayland compositor that supports the `zwlr-foreign
 To build and install Glace, run the following command after cloning the repository:
 
 ```
-meson --prefix=/usr build && sudo ninja install
+meson setup build -Dbuildtype=release --wipe && sudo ninja -C build install
 ```
 
 ---
