@@ -5,4 +5,4 @@ if build_machine.system() == 'windows'
 endif
 
 subdir('protocol')
-subdir('libglace')
+subdir('glace')
