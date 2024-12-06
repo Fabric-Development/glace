@@ -1,12 +1,9 @@
+#pragma once
+
 #ifndef __LIBGLACE_MANAGER_H__
 #define __LIBGLACE_MANAGER_H__
 
-#include <gtk-3.0/gtk/gtk.h>
-#include <gdk/gdkwayland.h>
-#include <glib-object.h>
-#include <stdbool.h>
-#include <string.h>
-#include <assert.h>
+#include "glace-client.h"
 
 G_BEGIN_DECLS
 
@@ -22,6 +19,7 @@ G_BEGIN_DECLS
 typedef struct _GlaceManager GlaceManager;
 typedef struct _GlaceManagerPrivate GlaceManagerPrivate;
 typedef struct _GlaceManagerClass GlaceManagerClass;
+typedef void (*GlaceManagerCaptureClientCallback)(GdkPixbuf* pixbuf, gpointer user_data);
 
 struct _GlaceManager {
     GObject parent_instance;
@@ -30,12 +28,17 @@ struct _GlaceManager {
 
 struct _GlaceManagerClass {
     GObjectClass parent_class;
+
+    // methods
+    void (*capture_client)(GlaceManager* self, GlaceClient* client, gboolean overlay_cursor, GlaceManagerCaptureClientCallback callback, gpointer user_data, GDestroyNotify notify);
 };
 
 struct _GlaceManagerPrivate {
     GdkWaylandDisplay* gdk_display;
     struct wl_display* display;
+    struct wl_shm* wl_shm;
     struct zwlr_foreign_toplevel_manager_v1* wlr_manager;
+    struct hyprland_toplevel_export_manager_v1* hl_export_manager;
 };
 
 enum {
@@ -48,6 +51,7 @@ enum {
 // methods
 GType glace_manager_get_type();
 GlaceManager* glace_manager_new();
+void glace_manager_capture_client(GlaceManager* self, GlaceClient* client, gboolean overlay_cursor, GlaceManagerCaptureClientCallback callback, gpointer user_data, GDestroyNotify notify);
 
 G_END_DECLS
 
