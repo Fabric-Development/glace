@@ -27,7 +27,7 @@ From the AUR using your favorite AUR helper
 yay -S glace-git
 ```
 
-Or alternatively you can manually build Gray and install it
+Or alternatively you can manually build Glace and install it
 
 To build and install Glace, run the following command after cloning the repository:
 
