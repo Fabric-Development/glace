@@ -19,12 +19,15 @@ wayland-client
 Additionally, you will need a Wayland compositor that supports the `zwlr-foreign-toplevel-management` protocol. Compositors based on wlroots already support this protocol.
 
 ---
-## Build and Install
+### Arch Linux 
+Glace is present in the AUR under the name `glace-git`.
+
+### Manual Build
 
 To build and install Glace, run the following command after cloning the repository:
 
 ```
-meson setup build -Dbuildtype=release --wipe && sudo ninja -C build install
+meson setup build --prefix=/usr -Dbuildtype=release --wipe && sudo ninja -C build install
 ```
 
 ---
