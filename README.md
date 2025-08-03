@@ -20,14 +20,9 @@ Additionally, you will need a Wayland compositor that supports the `zwlr-foreign
 
 ---
 ### Arch Linux 
+Glace is present in the AUR under the name `glace-git`.
 
-From the AUR using your favorite AUR helper
-
-```
-yay -S glace-git
-```
-
-Or alternatively you can manually build Glace and install it
+### Manual Build
 
 To build and install Glace, run the following command after cloning the repository:
 
