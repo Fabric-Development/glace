@@ -32,7 +32,7 @@ Or alternatively you can manually build Gray and install it
 To build and install Glace, run the following command after cloning the repository:
 
 ```
-meson setup build -Dbuildtype=release --wipe && sudo ninja -C build install
+meson setup build --prefix=/usr -Dbuildtype=release --wipe && sudo ninja -C build install
 ```
 
 ---
