@@ -122,6 +122,9 @@ static void glace_manager_class_init(GlaceManagerClass* klass) {
 
     g_type_class_add_private(klass, sizeof(GlaceManagerPrivate));
 
+    // add public methods
+    klass->capture_client = glace_manager_capture_client;
+
     glace_manager_signals[GLACE_MANAGER_SIGNAL_CHANGED] = g_signal_new(
         "changed",
         GLACE_TYPE_MANAGER,
