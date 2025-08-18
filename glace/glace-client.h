@@ -69,6 +69,8 @@ struct _GlaceClientPrivate {
     GdkWaylandDisplay* gdk_display;
     GlaceClientProperties current_properties;
     GlaceClientProperties pending_properties;
+
+    uint64_t hyprland_address;
 };
 
 enum {
@@ -87,6 +89,7 @@ enum {
     GLACE_CLIENT_PROPERTY_ACTIVATED,
     GLACE_CLIENT_PROPERTY_FULLSCREEN,
     GLACE_CLIENT_PROPERTY_CLOSED,
+    GLACE_CLIENT_PROPERTY_HYPRLAND_ADDRESS,
     GLACE_CLIENT_N_PROPERTIES
 };
 
@@ -99,6 +102,7 @@ gboolean glace_client_get_minimized(GlaceClient* self);
 gboolean glace_client_get_activated(GlaceClient* self);
 gboolean glace_client_get_fullscreen(GlaceClient* self);
 gboolean glace_client_get_closed(GlaceClient* self);
+guint64 glace_client_get_hyprland_address(GlaceClient* self);
 
 // methods
 GType glace_client_get_type();

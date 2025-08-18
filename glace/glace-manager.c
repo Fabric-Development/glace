@@ -1,3 +1,4 @@
+#include "buffer-utils.h"
 #include "glace-private.h"
 
 static guint glace_manager_signals[GLACE_MANAGER_N_SIGNALS] = {0};
@@ -45,7 +46,7 @@ static void on_manager_toplevel(
         return;
     }
 
-    GlaceClient* client = glace_client_new(handle, self->priv->gdk_display);
+    GlaceClient* client = glace_client_new(handle, self->priv->hl_mapping_manager, self->priv->gdk_display);
     RETURN_IF_INVALID_CLIENT(client, EMPTY_TOKEN);
 
     g_signal_connect(client, "close", G_CALLBACK(on_client_closed_cleanup), self);
@@ -101,6 +102,14 @@ static void on_registry_global(
             max(version, 1)
         );
         self->priv->hl_export_manager = export_manager;
+    } else if (strcmp(interface, hyprland_toplevel_mapping_manager_v1_interface.name) == 0) {
+        g_debug("[INFO][PROTOCOL] connecting to hyprland_toplevel_mapping_manager_v1\n");
+        self->priv->hl_mapping_manager = wl_registry_bind(
+            registry,
+            name,
+            &hyprland_toplevel_mapping_manager_v1_interface,
+            max(version, 1)
+        );
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
         g_debug("[INFO][PROTOCOL] getting a shared memory buffer\n");
 
@@ -118,7 +127,7 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 static void glace_manager_class_init(GlaceManagerClass* klass) {
-    GObjectClass* parent_class = G_OBJECT_CLASS(klass);
+    // GObjectClass* parent_class = G_OBJECT_CLASS(klass);
 
     g_type_class_add_private(klass, sizeof(GlaceManagerPrivate));
 
@@ -188,6 +197,7 @@ static void glace_manager_init(GlaceManager* self) {
 
     self->priv->display = display;
     self->priv->gdk_display = gdk_display;
+    self->priv->hl_mapping_manager = NULL;
 
     // all aboard...
     struct wl_registry* registry = wl_display_get_registry(self->priv->display);
@@ -199,9 +209,11 @@ static void glace_manager_init(GlaceManager* self) {
         g_warning(
             "[WARNING][MANAGER] your compositor does not support the wlr-foreign-toplevel-management protocol, Glace will not work if the protocol support is missing!"
         );
+
+    buffer_utils_log_available_accelerator();
 }
 
-static int anonymous_shm_open() {
+static inline int anonymous_shm_open() {
     char* name;
     int retries = 100;
     do {
@@ -219,7 +231,7 @@ static int anonymous_shm_open() {
     return -1;
 }
 
-static int create_shm_file(off_t size) {
+static inline int create_shm_file(off_t size) {
     int fd = anonymous_shm_open();
     if (fd < 0) {
         return fd;
@@ -276,16 +288,6 @@ static GlaceFrameBuffer* glace_frame_buffer_new(struct wl_shm* shm, enum wl_shm_
     return buffer;
 }
 
-static inline void frame_buffer_correct_format(GlaceFrameBuffer* buffer) {
-    // BGRA -> RGBA
-    uint32_t* agbr = (uint32_t*)buffer->raw_buffer;
-    for (size_t i = 0; i < buffer->width * buffer->height; i++) {
-        uint32_t pixel = agbr[i];
-
-        agbr[i] = (pixel & 0xFF00FF00) | ((pixel << 16) & 0x00FF0000) | ((pixel >> 16) & 0xFF);
-    }
-}
-
 static void glace_frame_buffer_destroy(GlaceFrameBuffer* buffer) {
     if (buffer == NULL) {
         return;
@@ -315,26 +317,30 @@ static void glace_frame_data_destroy(GlaceFrameData* data) {
     return;
 }
 
+static void do_release_pixbuf(guchar* pixels, gpointer user_data) {
+    GlaceFrameData* data = user_data;
+    // we'll miss you
+    glace_frame_data_destroy(data);
+}
+
 static void on_export_manager_frame_buffer(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t format, uint32_t width, uint32_t height, uint32_t stride) {
     GlaceFrameData* data = user_data;
     data->buffer = glace_frame_buffer_new(data->manager->priv->wl_shm, format, width, height, stride);
     return;
 }
 
-static void on_export_manager_frame_damage(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {}
-
-static void on_export_manager_frame_flags(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t flags) {}
-
 static void on_export_manager_frame_ready(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec) {
     GlaceFrameData* data = user_data;
 
-    if (!data || !data->buffer) {
+    if (!data)
+        goto finalize;
+    if (!data->buffer) {
         data->callback(NULL, data->callback_data);
-        return;
+        glace_frame_data_destroy(data);
+        goto finalize;
     }
 
-    frame_buffer_correct_format(data->buffer);
-
+    buffer_utils_bgrx_to_rgbx(data->buffer->raw_buffer, data->buffer->width * data->buffer->height);
     GdkPixbuf* pixbuf = gdk_pixbuf_new_from_data(
         data->buffer->raw_buffer,
         GDK_COLORSPACE_RGB,
@@ -343,15 +349,15 @@ static void on_export_manager_frame_ready(void* user_data, struct hyprland_tople
         data->buffer->width,
         data->buffer->height,
         data->buffer->stride,
-        NULL,
-        NULL
+        do_release_pixbuf,
+        data
     );
 
     data->callback(pixbuf, data->callback_data);
-    glace_frame_data_destroy(data);
+    // gdk_pixbuf_unref(pixbuf);  // !FIXME: unsafe, add a function annotation for giving ownership to the caller
 
+finalize:
     hyprland_toplevel_export_frame_v1_destroy(export_frame);
-
     return;
 }
 
@@ -366,8 +372,6 @@ static void on_export_manager_frame_failed(void* user_data, struct hyprland_topl
     return;
 }
 
-static void on_export_manager_frame_linux_dmabuf(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t format, uint32_t width, uint32_t height) {}
-
 static void on_export_manager_frame_buffer_done(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame) {
     GlaceFrameData* data = user_data;
 
@@ -376,6 +380,10 @@ static void on_export_manager_frame_buffer_done(void* user_data, struct hyprland
 
     return;
 }
+
+static void on_export_manager_frame_damage(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t x, uint32_t y, uint32_t width, uint32_t height) {}
+static void on_export_manager_frame_flags(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t flags) {}
+static void on_export_manager_frame_linux_dmabuf(void* user_data, struct hyprland_toplevel_export_frame_v1* export_frame, uint32_t format, uint32_t width, uint32_t height) {}
 
 static const struct hyprland_toplevel_export_frame_v1_listener export_manager_frame_listener = {
     .buffer = &on_export_manager_frame_buffer,
@@ -386,6 +394,11 @@ static const struct hyprland_toplevel_export_frame_v1_listener export_manager_fr
     .linux_dmabuf = &on_export_manager_frame_linux_dmabuf,
     .buffer_done = &on_export_manager_frame_buffer_done
 };
+
+void glace_manager_finalize(GObject* object) {
+    GlaceManager* self = GLACE_MANAGER(object);
+    G_OBJECT_CLASS(g_type_class_peek_parent(G_OBJECT_GET_CLASS(self)))->finalize(object);
+}
 
 // public methods
 GlaceManager* glace_manager_new() {

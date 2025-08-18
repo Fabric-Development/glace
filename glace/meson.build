@@ -6,7 +6,7 @@ glace_version = meson.project_version()
 glace_description = 'a library for managing wayland clients'
 glace_url = 'https://github.com/Fabric-Development/glace'
 
-glace_library_name = 'lib' + glace_name
+glace_library_name = glace_name
 
 glace_namespace = 'Glace'
 glace_package_name = glace_namespace + '-' + glace_version
@@ -23,6 +23,7 @@ glace_public_headers = files(
 )
 
 glace_private_headers = files(
+    'buffer-utils.h',
     'glace-manager-private.h',
     'glace-client-private.h',
     'glace-private.h'
@@ -45,20 +46,21 @@ all_dependencies = [
 libglace = library(
     glace_library_name,
     glace_sources,
+    c_args: ['-O3', '-march=native'],
     dependencies: all_dependencies,
     install: true,
 )
 
 glace_gir = gnome.generate_gir(
   libglace,
-  header: 'libglace.h',
+  header: 'glace.h',
   sources: glace_sources + glace_public_headers,
   namespace: glace_namespace,
   nsversion: glace_version,
   identifier_prefix: glace_namespace,
-  includes: ['GObject-2.0', 'Gtk-3.0'],
+  includes: ['GObject-2.0', 'GLib-2.0', 'Gtk-3.0'],
   dependencies: dependencies,
-  header: 'libglace/libglace.h',
+  header: 'glace/glace.h',
   symbol_prefix: 'glace',
   install: true,
 )
@@ -67,13 +69,13 @@ glace_gir = gnome.generate_gir(
 libgpaste_vapi = gnome.generate_vapi(
     glace_package_name,
     sources: [glace_gir[0]],
-    packages: [ 'gtk+-3.0', 'gio-2.0', 'glib-2.0', 'gobject-2.0' ],
+    packages: ['gtk+-3.0', 'gio-2.0', 'glib-2.0', 'gobject-2.0'],
     install: true,
 )
 
 install_headers(
-    glace_headers ,
-    subdir: glace_name,   
+    glace_public_headers,
+    subdir: glace_name,
 )
 
 pkg_config.generate(

@@ -52,7 +52,7 @@
       <arg
         name="toplevel"
         type="object"
-        interface="ext_foreign_toplevel_handle_v1"
+        interface="zwlr_foreign_toplevel_handle_v1"
         summary="toplevel to get the window address for"
       />
     </request>

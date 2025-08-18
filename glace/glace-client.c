@@ -5,6 +5,14 @@ static GParamSpec* glace_client_properties[GLACE_CLIENT_N_PROPERTIES] = {
     NULL,
 };
 
+static void on_mapping_handle_window_address(void* user_data, struct hyprland_toplevel_window_mapping_handle_v1* handle, uint32_t address_hi, uint32_t address);
+static void on_mapping_handle_failed(void* user_data, struct hyprland_toplevel_window_mapping_handle_v1* handle);
+
+static const struct hyprland_toplevel_window_mapping_handle_v1_listener mapping_handle_listener = {
+    .window_address = &on_mapping_handle_window_address,
+    .failed = &on_mapping_handle_failed,
+};
+
 static void glace_client_signal_changed_emit(GlaceClient* self) {
     g_signal_emit(
         self,
@@ -53,6 +61,9 @@ static void glace_client_get_property(
         break;
     case GLACE_CLIENT_PROPERTY_CLOSED:
         g_value_set_boolean(value, self->priv->closed);
+        break;
+    case GLACE_CLIENT_PROPERTY_HYPRLAND_ADDRESS:
+        g_value_set_uint64(value, self->priv->hyprland_address);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -285,6 +296,16 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
+    glace_client_properties[GLACE_CLIENT_PROPERTY_HYPRLAND_ADDRESS] = g_param_spec_uint64(
+        "hyprland-address",
+        "hyprland-address",
+        "the internal window address for hyprland in 64bits",
+        0,
+        G_MAXUINT64,
+        0,
+        G_PARAM_READABLE
+    );
+
     g_object_class_install_properties(
         parent_class,
         GLACE_CLIENT_N_PROPERTIES,
@@ -300,6 +321,7 @@ static void glace_client_init(GlaceClient* self) {
     );
 
     self->priv->closed = false;
+    self->priv->hyprland_address = 0;
     CLIENT_SET_CURRENT_PROP(self, app_id, false);
     CLIENT_SET_CURRENT_PROP(self, title, false);
     CLIENT_SET_CURRENT_PROP(self, maximized, false);
@@ -308,8 +330,41 @@ static void glace_client_init(GlaceClient* self) {
     CLIENT_SET_CURRENT_PROP(self, fullscreen, false);
 }
 
+static void on_mapping_handle_window_address(
+    void* user_data,
+    struct hyprland_toplevel_window_mapping_handle_v1* handle,
+    // that's how you know a protocol is good
+    uint32_t address_hi,
+    uint32_t address_lo
+) {
+    GlaceClient* self = GLACE_CLIENT(user_data);
+    RETURN_IF_INVALID_CLIENT(self, hyprland_toplevel_window_mapping_handle_v1_destroy(handle));
+
+    self->priv->hyprland_address = ((guint64)address_hi << 32) | address_lo;
+
+    // we have a proper address now, notify the user...
+    g_object_notify_by_pspec(
+        G_OBJECT(self),
+        glace_client_properties[GLACE_CLIENT_PROPERTY_HYPRLAND_ADDRESS]
+    );
+
+    glace_client_signal_changed_emit(self);
+
+    hyprland_toplevel_window_mapping_handle_v1_destroy(handle);
+}
+
+static void on_mapping_handle_failed(
+    void* user_data,
+    struct hyprland_toplevel_window_mapping_handle_v1* handle
+) {
+    // something's fucked up, cleanup meanwhile
+    hyprland_toplevel_window_mapping_handle_v1_destroy(handle);
+    return;
+}
+
 GlaceClient* glace_client_new(
     struct zwlr_foreign_toplevel_handle_v1* wlr_handle,
+    struct hyprland_toplevel_mapping_manager_v1* hl_mapping_manager,
     GdkWaylandDisplay* gdk_display
 ) {
     GlaceClient* self = g_object_new(GLACE_TYPE_CLIENT, NULL);
@@ -321,12 +376,32 @@ GlaceClient* glace_client_new(
         &toplevel_handle_listener,
         self
     );
+
+    if (!hl_mapping_manager)
+        return self;
+
+    struct hyprland_toplevel_window_mapping_handle_v1*
+        handle = hyprland_toplevel_mapping_manager_v1_get_window_for_toplevel_wlr(
+            hl_mapping_manager,
+            self->priv->wlr_handle
+        );
+
+    hyprland_toplevel_window_mapping_handle_v1_add_listener(
+        handle,
+        &mapping_handle_listener,
+        self  // user_data
+    );
+
     return self;
 }
 
 // client getters
 guint glace_client_get_id(GlaceClient* self) {
     return (guint)self->priv->id;
+}
+
+guint64 glace_client_get_hyprland_address(GlaceClient* self) {
+    return (guint64)self->priv->hyprland_address;
 }
 
 const gchar* glace_client_get_app_id(GlaceClient* self) {

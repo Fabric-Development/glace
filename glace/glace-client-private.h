@@ -51,13 +51,13 @@
     } while (0)
 
 // signal emitters
-static void glace_client_signal_changed_emit(GlaceClient* self);
-static void glace_client_signal_close_emit(GlaceClient* self);
+// static void glace_client_signal_changed_emit(GlaceClient* self);
+// static void glace_client_signal_close_emit(GlaceClient* self);
 
 // methods
-static void glace_client_init(GlaceClient* self);
-static void glace_client_class_init(GlaceClientClass* klass);
+// static void glace_client_init(GlaceClient* self);
+// static void glace_client_class_init(GlaceClientClass* klass);
 
-GlaceClient* glace_client_new(struct zwlr_foreign_toplevel_handle_v1* wlr_handle, GdkWaylandDisplay* gdk_display);
+GlaceClient* glace_client_new(struct zwlr_foreign_toplevel_handle_v1* wlr_handle, struct hyprland_toplevel_mapping_manager_v1* hl_mapping_manager, GdkWaylandDisplay* gdk_display);
 
 #endif /* __LIBGLACE_CLIENT_PRIVATE_H__ */

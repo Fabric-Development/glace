@@ -26,6 +26,15 @@
 typedef struct _GlaceFrameData GlaceFrameData;
 typedef struct _GlaceFrameBuffer GlaceFrameBuffer;
 
+struct _GlaceManagerPrivate {
+    GdkWaylandDisplay* gdk_display;
+    struct wl_display* display;
+    struct wl_shm* wl_shm;
+    struct zwlr_foreign_toplevel_manager_v1* wlr_manager;
+    struct hyprland_toplevel_export_manager_v1* hl_export_manager;
+    struct hyprland_toplevel_mapping_manager_v1* hl_mapping_manager;
+};
+
 struct _GlaceFrameBuffer {
     struct wl_buffer* wl_buffer;
     void* raw_buffer;
@@ -52,8 +61,8 @@ const static struct hyprland_toplevel_export_frame_v1_listener export_manager_fr
 // static void glace_manager_init(GlaceManager* self);
 // static void glace_manager_class_init(GlaceManagerClass* klass);
 
-static void glace_manager_signal_changed_emit(GlaceManager* self);
-static void glace_manager_signal_client_added_emit(GlaceManager* self, GlaceClient* client);
-static void glace_manager_signal_client_removed_emit(GlaceManager* self, GlaceClient* client);
+// static void glace_manager_signal_changed_emit(GlaceManager* self);
+// static void glace_manager_signal_client_added_emit(GlaceManager* self, GlaceClient* client);
+// static void glace_manager_signal_client_removed_emit(GlaceManager* self, GlaceClient* client);
 
 #endif /* __LIBGLACE_MANAGER_PRIVATE_H__ */

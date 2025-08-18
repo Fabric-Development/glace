@@ -19,6 +19,14 @@ G_BEGIN_DECLS
 typedef struct _GlaceManager GlaceManager;
 typedef struct _GlaceManagerPrivate GlaceManagerPrivate;
 typedef struct _GlaceManagerClass GlaceManagerClass;
+
+/**
+ * GlaceManagerCaptureClientCallback:
+ * @pixbuf: (transfer full): the captured pixbuf, ownership is transferred to the caller
+ *
+ * called when a client capture operation completes.
+ * the caller must unref the @pixbuf once uneeded to avoid leaks.
+ */
 typedef void (*GlaceManagerCaptureClientCallback)(GdkPixbuf* pixbuf, gpointer user_data);
 
 struct _GlaceManager {
@@ -29,16 +37,8 @@ struct _GlaceManager {
 struct _GlaceManagerClass {
     GObjectClass parent_class;
 
-    // methods
+    // public methods
     void (*capture_client)(GlaceManager* self, GlaceClient* client, gboolean overlay_cursor, GlaceManagerCaptureClientCallback callback, gpointer user_data, GDestroyNotify notify);
-};
-
-struct _GlaceManagerPrivate {
-    GdkWaylandDisplay* gdk_display;
-    struct wl_display* display;
-    struct wl_shm* wl_shm;
-    struct zwlr_foreign_toplevel_manager_v1* wlr_manager;
-    struct hyprland_toplevel_export_manager_v1* hl_export_manager;
 };
 
 enum {
@@ -51,6 +51,16 @@ enum {
 // methods
 GType glace_manager_get_type();
 GlaceManager* glace_manager_new();
+
+/**
+ * glace_manager_capture_client:
+ * @self: a #GlaceManager
+ * @client: the #GlaceClient instance to capture
+ * @overlay_cursor: whether or not to render the cursor on the client, optional and defaults to false
+ * @callback: a callback for receiving the rendered snapshot, this callback should be able of receiving a GdkPixbuf where the data resigns
+ *
+ * try and get a snapshot capture of a client, this only works on hyprland currently.
+ */
 void glace_manager_capture_client(GlaceManager* self, GlaceClient* client, gboolean overlay_cursor, GlaceManagerCaptureClientCallback callback, gpointer user_data, GDestroyNotify notify);
 
 G_END_DECLS
