@@ -1,7 +1,14 @@
+#pragma once
+
 #ifndef __LIBGLACE_CLIENT_H__
 #define __LIBGLACE_CLIENT_H__
 
-#include "libglace-manager.h"
+#include <assert.h>
+#include <gdk/gdkwayland.h>
+#include <glib-object.h>
+#include <gtk-3.0/gtk/gtk.h>
+#include <stdbool.h>
+#include <string.h>
 
 G_BEGIN_DECLS
 
@@ -31,15 +38,15 @@ struct _GlaceClientClass {
     GObjectClass parent_class;
 
     // _class_ methods
-    void (*activate)(GlaceClient *self);
-    void (*maximize)(GlaceClient *self);
-    void (*minimize)(GlaceClient *self);
-    void (*fullscreen)(GlaceClient *self);
-    void (*unmaximize)(GlaceClient *self);
-    void (*unminimize)(GlaceClient *self);
-    void (*unfullscreen)(GlaceClient *self);
+    void (*activate)(GlaceClient* self);
+    void (*maximize)(GlaceClient* self);
+    void (*minimize)(GlaceClient* self);
+    void (*fullscreen)(GlaceClient* self);
+    void (*unmaximize)(GlaceClient* self);
+    void (*unminimize)(GlaceClient* self);
+    void (*unfullscreen)(GlaceClient* self);
     void (*move)(GlaceClient* self, GdkWindow* window, const GdkRectangle* rectangle);
-    void (*close)(GlaceClient *self);
+    void (*close)(GlaceClient* self);
 };
 
 /**
@@ -62,6 +69,8 @@ struct _GlaceClientPrivate {
     GdkWaylandDisplay* gdk_display;
     GlaceClientProperties current_properties;
     GlaceClientProperties pending_properties;
+
+    uint64_t hyprland_address;
 };
 
 enum {
@@ -80,6 +89,7 @@ enum {
     GLACE_CLIENT_PROPERTY_ACTIVATED,
     GLACE_CLIENT_PROPERTY_FULLSCREEN,
     GLACE_CLIENT_PROPERTY_CLOSED,
+    GLACE_CLIENT_PROPERTY_HYPRLAND_ADDRESS,
     GLACE_CLIENT_N_PROPERTIES
 };
 
@@ -92,6 +102,7 @@ gboolean glace_client_get_minimized(GlaceClient* self);
 gboolean glace_client_get_activated(GlaceClient* self);
 gboolean glace_client_get_fullscreen(GlaceClient* self);
 gboolean glace_client_get_closed(GlaceClient* self);
+guint64 glace_client_get_hyprland_address(GlaceClient* self);
 
 // methods
 GType glace_client_get_type();
@@ -99,7 +110,7 @@ GType glace_client_get_type();
 /**
  * glace_client_maximize:
  * @self: a #GlaceClient
- * 
+ *
  * to maximize a client (AKA make it to fill it's display area)
  */
 void glace_client_maximize(GlaceClient* self);
@@ -107,7 +118,7 @@ void glace_client_maximize(GlaceClient* self);
 /**
  * glace_client_unmaximize:
  * @self: a #GlaceClient
- * 
+ *
  * to unset a client from the maximized state
  */
 void glace_client_unmaximize(GlaceClient* self);
@@ -115,7 +126,7 @@ void glace_client_unmaximize(GlaceClient* self);
 /**
  * glace_client_minimize:
  * @self: a #GlaceClient
- * 
+ *
  * to minimize a client (AKA hide it to taskbar)
  */
 void glace_client_minimize(GlaceClient* self);
@@ -123,7 +134,7 @@ void glace_client_minimize(GlaceClient* self);
 /**
  * glace_client_unminimize:
  * @self: a #GlaceClient
- * 
+ *
  * to unset a client from the minimized state
  */
 void glace_client_unminimize(GlaceClient* self);
@@ -131,7 +142,7 @@ void glace_client_unminimize(GlaceClient* self);
 /**
  * glace_client_close:
  * @self: a #GlaceClient
- * 
+ *
  * to close a client
  * the `closed` property will get changed if the request was done successfully
  * it's guaranteed that you won't receive events for this client after it gets closed
@@ -141,7 +152,7 @@ void glace_client_close(GlaceClient* self);
 /**
  * glace_client_activate:
  * @self: a #GlaceClient
- * 
+ *
  * to activate a client (AKA focus it)
  * the `activated` property will get changed if the request was done successfully
  */
@@ -152,7 +163,7 @@ void glace_client_activate(GlaceClient* self);
  * @self: a #GlaceClient
  * @window: (nullable): the #GdkWindow to use it's surface as a hint for the compositor, you can pass NULL for this
  * @rectangle: the #GdkRectangle to use
- * 
+ *
  * move this client to a X and Y coords / width and height using a rectangle
  * it's not guaranteed if the client will actually get moved or not
  * check if your target compositor(s) supports this feature or not
@@ -162,7 +173,7 @@ void glace_client_move(GlaceClient* self, GdkWindow* window, const GdkRectangle*
 /**
  * glace_client_fullscreen:
  * @self: a #GlaceClient
- * 
+ *
  * to get a client in a fullscreen state
  * it will be ignore if the client is in a fullscreen state
  * the `fullscreen` property will get changed if the request was done successfully
@@ -172,7 +183,7 @@ void glace_client_fullscreen(GlaceClient* self);
 /**
  * glace_client_unfullscreen:
  * @self: a #GlaceClient
- * 
+ *
  * to get a client out of fullscreen state
  * it will be ignore if the client is not in a fullscreen state
  * the `fullscreen` property will get changed if the request was done successfully

@@ -1,5 +1,5 @@
-/* cc simple.c `pkg-config --libs --cflags libglace` */
-#include <libglace/libglace.h>
+/* cc simple.c `pkg-config --libs --cflags glace` */
+#include <glace/glace.h>
 
 static void on_client_chagend(GlaceClient* client) {
     printf(
