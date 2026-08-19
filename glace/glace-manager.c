@@ -110,6 +110,14 @@ static void on_registry_global(
             &hyprland_toplevel_mapping_manager_v1_interface,
             max(version, 1)
         );
+    } else if (strcmp(interface, ext_background_effect_manager_v1_interface.name) == 0) {
+        g_debug("[INFO][PROTOCOL] connecting to ext_background_effect_manager_v1_interface\n");
+        self->priv->ext_effect_manager = wl_registry_bind(
+            registry,
+            name,
+            &ext_background_effect_manager_v1_interface,
+            max(version, 1)
+        );
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
         g_debug("[INFO][PROTOCOL] getting a shared memory buffer\n");
 

@@ -30,7 +30,10 @@ struct _GlaceManagerPrivate {
     GdkWaylandDisplay* gdk_display;
     struct wl_display* display;
     struct wl_shm* wl_shm;
-    struct zwlr_foreign_toplevel_manager_v1* wlr_manager;
+
+    // compositor specific protocols
+    struct zwlr_foreign_toplevel_manager_v1* wlr_manager; // TODO: rename for verbosity
+    struct ext_background_effect_manager_v1* ext_effect_manager;
     struct hyprland_toplevel_export_manager_v1* hl_export_manager;
     struct hyprland_toplevel_mapping_manager_v1* hl_mapping_manager;
 };

@@ -1,6 +1,7 @@
 wayland_dep = dependency('wayland-client')
 
 protocol_names = [
+    'ext-background-effect-v1',
     'wlr-foreign-toplevel-management-unstable-v1',
     'hyprland-toplevel-mapping-v1',
     'hyprland-toplevel-export-v1',
