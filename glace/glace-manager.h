@@ -3,6 +3,7 @@
 #ifndef __LIBGLACE_MANAGER_H__
 #define __LIBGLACE_MANAGER_H__
 
+#include "glace-client-effect.h"
 #include "glace-client.h"
 
 G_BEGIN_DECLS
@@ -51,6 +52,28 @@ enum {
 // methods
 GType glace_manager_get_type();
 GlaceManager* glace_manager_new();
+
+/**
+ * glace_manager_get_client_effect_for_surface:
+ * @self: a #GlaceManager
+ * @surface: the wayland surface to get an effect handle from
+ *
+ * Returns: (transfer full) (nullable): A newly allocated #GlaceClientEffect,
+ *          or %NULL if creation failed. The caller is responsible
+ *          for unreferencing it with g_object_unref() if it is not %NULL.
+ */
+GlaceClientEffect* glace_manager_get_client_effect_for_surface(GlaceManager* self, struct wl_surface* surface);
+
+/**
+ * glace_manager_get_client_effect_for_window:
+ * @self: a #GlaceManager
+ * @window: the #GdkWindow to get an effect handle from
+ *
+ * Returns: (transfer full) (nullable): A newly allocated #GlaceClientEffect,
+ *          or %NULL if creation failed. The caller is responsible
+ *          for unreferencing it with g_object_unref() if it is not %NULL.
+ */
+GlaceClientEffect* glace_manager_get_client_effect_for_window(GlaceManager* self, GdkWindow* window);
 
 /**
  * glace_manager_capture_client:

@@ -1,6 +1,8 @@
 #include "buffer-utils.h"
 #include "glace-private.h"
 
+G_DEFINE_TYPE_WITH_PRIVATE(GlaceManager, glace_manager, G_TYPE_OBJECT);
+
 static guint glace_manager_signals[GLACE_MANAGER_N_SIGNALS] = {0};
 
 static void glace_manager_signal_changed_emit(GlaceManager* self) {
@@ -75,6 +77,7 @@ static void on_registry_global(
     uint32_t version
 ) {
     g_debug("[INFO][PROTOCOL] got protocol with name %s\n", interface);
+    g_warning("THIS IS NEW GLACE");
 
     GlaceManager* self = data;
     if (!GLACE_IS_MANAGER(self)) {
@@ -119,9 +122,13 @@ static void on_registry_global(
             max(version, 1)
         );
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-        g_debug("[INFO][PROTOCOL] getting a shared memory buffer\n");
+        g_debug("[INFO][PROTOCOL] got basic a shared memory buffer\n");
 
         self->priv->wl_shm = wl_registry_bind(registry, name, &wl_shm_interface, version);
+    } else if (strcmp(interface, wl_compositor_interface.name) == 0) {
+        g_debug("[INFO][PROTOCOL] got a proxy handle to the compositor\n");
+
+        self->priv->compositor = wl_registry_bind(registry, name, &wl_compositor_interface, version);
     }
 
     return;
@@ -136,8 +143,6 @@ static const struct wl_registry_listener registry_listener = {
 
 static void glace_manager_class_init(GlaceManagerClass* klass) {
     // GObjectClass* parent_class = G_OBJECT_CLASS(klass);
-
-    g_type_class_add_private(klass, sizeof(GlaceManagerPrivate));
 
     // add public methods
     klass->capture_client = glace_manager_capture_client;
@@ -182,11 +187,7 @@ static void glace_manager_class_init(GlaceManagerClass* klass) {
 }
 
 static void glace_manager_init(GlaceManager* self) {
-    self->priv = G_TYPE_INSTANCE_GET_PRIVATE(
-        self,
-        GLACE_TYPE_MANAGER,
-        GlaceManagerPrivate
-    );
+    self->priv = glace_manager_get_instance_private(self);
 
     GdkWaylandDisplay* gdk_display = gdk_display_get_default();
     if (GDK_IS_WAYLAND_DISPLAY(gdk_display) == false) {
@@ -413,6 +414,26 @@ GlaceManager* glace_manager_new() {
     return g_object_new(GLACE_TYPE_MANAGER, NULL);
 }
 
+GlaceClientEffect* glace_manager_get_client_effect_for_surface(GlaceManager* self, struct wl_surface* surface) {
+    if (!self->priv->ext_effect_manager) {
+        g_warning_once("your wayland compositor does not support the ext-background-effect protocol, it is required in order to use this method.");
+        return NULL;
+    }
+
+    return glace_client_effect_new(
+        self->priv->compositor,
+        surface,
+        ext_background_effect_manager_v1_get_background_effect(self->priv->ext_effect_manager, surface)
+    );
+}
+
+GlaceClientEffect* glace_manager_get_client_effect_for_window(GlaceManager* self, GdkWindow* window) {
+    if (!GDK_IS_WINDOW(window)) {
+        return NULL;
+    }
+    return glace_manager_get_client_effect_for_surface(self, gdk_wayland_window_get_wl_surface(window));
+}
+
 void glace_manager_capture_client(GlaceManager* self, GlaceClient* client, gboolean overlay_cursor, GlaceManagerCaptureClientCallback callback, gpointer user_data, GDestroyNotify notify) {
     if (!self->priv->hl_export_manager) {
         g_warning_once("at the moment, capturing a client is only available for Hyprland users.");
@@ -435,5 +456,3 @@ void glace_manager_capture_client(GlaceManager* self, GlaceClient* client, gbool
 
     return;
 }
-
-G_DEFINE_TYPE(GlaceManager, glace_manager, G_TYPE_OBJECT);
