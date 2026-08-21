@@ -1,5 +1,7 @@
 #include "glace-private.h"
 
+G_DEFINE_TYPE_WITH_PRIVATE(GlaceClient, glace_client, G_TYPE_OBJECT);
+
 static guint glace_client_signals[GLACE_CLIENT_N_SIGNALS] = {0};
 static GParamSpec* glace_client_properties[GLACE_CLIENT_N_PROPERTIES] = {
     NULL,
@@ -193,8 +195,6 @@ static struct zwlr_foreign_toplevel_handle_v1_listener toplevel_handle_listener 
 static void glace_client_class_init(GlaceClientClass* klass) {
     GObjectClass* parent_class = G_OBJECT_CLASS(klass);
 
-    g_type_class_add_private(klass, sizeof(GlaceClientPrivate));
-
     // overrides
     parent_class->get_property = glace_client_get_property;
 
@@ -284,6 +284,11 @@ static void glace_client_class_init(GlaceClientClass* klass) {
         G_PARAM_READABLE
     );
 
+    /**
+     * GlaceClient:fullscreen: (getter get_fullscreen)
+     *
+     * whether this client is currently in a fullscreen state or not
+     */
     glace_client_properties[GLACE_CLIENT_PROPERTY_FULLSCREEN] = g_param_spec_boolean(
         "fullscreen", "fullscreen", "whether this client is currently in a fullscreen state or not", false, G_PARAM_READABLE
     );
@@ -314,11 +319,7 @@ static void glace_client_class_init(GlaceClientClass* klass) {
 }
 
 static void glace_client_init(GlaceClient* self) {
-    self->priv = G_TYPE_INSTANCE_GET_PRIVATE(
-        self,
-        GLACE_TYPE_CLIENT,
-        GlaceClientPrivate
-    );
+    self->priv = glace_client_get_instance_private(self);
 
     self->priv->closed = false;
     self->priv->hyprland_address = 0;
@@ -517,4 +518,3 @@ void glace_client_unfullscreen(GlaceClient* self) {
 
     zwlr_foreign_toplevel_handle_v1_unset_fullscreen(self->priv->wlr_handle);
 }
-G_DEFINE_TYPE(GlaceClient, glace_client, G_TYPE_OBJECT);

@@ -13,12 +13,14 @@ glace_package_name = glace_namespace + '-' + glace_version
 
 glace_sources = files(
     'glace-manager.c',
-    'glace-client.c'
+    'glace-client.c',
+    'glace-client-effect.c'
 )
 
 glace_public_headers = files(
     'glace-manager.h',
     'glace-client.h',
+    'glace-client-effect.h',
     'glace.h'
 )
 
@@ -26,6 +28,7 @@ glace_private_headers = files(
     'buffer-utils.h',
     'glace-manager-private.h',
     'glace-client-private.h',
+    'glace-client-effect-private.h',
     'glace-private.h'
 )
 
@@ -36,6 +39,7 @@ dependencies = [
     dependency('gtk+-3.0'),
     dependency('gobject-2.0'),
     dependency('gdk-wayland-3.0'),
+    dependency('cairo')
 ]
 
 all_dependencies = [
